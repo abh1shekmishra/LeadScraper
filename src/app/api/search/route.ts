@@ -3,6 +3,7 @@ import { textSearchPlaces } from '@/lib/google-places';
 import { checkManyWebsites } from '@/lib/website-health';
 import { analyzeReviews } from '@/lib/reviews';
 import { buildLeads } from '@/lib/build-leads';
+import { DEMO_MODE, demoLeads } from '@/lib/demo';
 import { FilterState } from '@/types/filters';
 
 export async function POST(req: NextRequest) {
@@ -11,6 +12,13 @@ export async function POST(req: NextRequest) {
 
     if (!query.trim()) {
       return NextResponse.json({ error: 'Search query is required' }, { status: 400 });
+    }
+
+    // Demo mode: return the curated sample set, scored through the real pipeline,
+    // so the deployed app is fully explorable with no API keys and no cost.
+    if (DEMO_MODE) {
+      const leads = demoLeads(filters.serviceTypes);
+      return NextResponse.json({ leads, allFilteredOut: false, total: leads.length });
     }
 
     const { businesses } = await textSearchPlaces(query.trim());

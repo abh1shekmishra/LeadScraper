@@ -3,11 +3,19 @@ import { geocodeLocation, searchNearbyPlaces } from '@/lib/google-places';
 import { checkManyWebsites } from '@/lib/website-health';
 import { analyzeReviews } from '@/lib/reviews';
 import { buildLeads } from '@/lib/build-leads';
+import { DEMO_MODE, demoLeads } from '@/lib/demo';
 import { FilterState, WEBSITE_SERVICES } from '@/types/filters';
 
 export async function POST(req: NextRequest) {
   try {
     const { filters }: { filters: FilterState } = await req.json();
+
+    // Demo mode: same curated sample set as the text-search path.
+    if (DEMO_MODE) {
+      const leads = demoLeads(filters.serviceTypes);
+      const wantsWebsite = filters.serviceTypes.some((s) => WEBSITE_SERVICES.includes(s));
+      return NextResponse.json({ leads, allFilteredOut: false, wantsWebsite, total: leads.length });
+    }
 
     if (!filters.location.city) {
       return NextResponse.json({ error: 'City is required' }, { status: 400 });

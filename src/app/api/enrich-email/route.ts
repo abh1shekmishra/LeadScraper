@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findEmailByDomain, extractDomain, inferEmailFromDomain } from '@/lib/hunter';
+import { DEMO_MODE } from '@/lib/demo';
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,6 +16,13 @@ export async function POST(req: NextRequest) {
     if (!domain) {
       return NextResponse.json({
         email: { address: null, confidence: 'unknown', source: null },
+      });
+    }
+
+    // Demo mode: show the pattern-inferred email path without a Hunter API call.
+    if (DEMO_MODE) {
+      return NextResponse.json({
+        email: { address: inferEmailFromDomain(domain), confidence: 'inferred', source: 'pattern' },
       });
     }
 
