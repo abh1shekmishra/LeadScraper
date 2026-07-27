@@ -35,9 +35,9 @@ Every lead is qualified by something the tool actually _checked_ ("I tried openi
 
 ## What it does
 
-- 🔎 **Global search, plain English** — type `restaurants in Dubai` or `real estate agencies in Mumbai`. Uses Google Places Text Search with pagination (~60 leads/search).
-- 🩺 **Live website health check** — server-side probe of every lead's site: missing, dead, social-page-only, no HTTPS, not mobile-friendly, slow. Timeouts are treated as _unverified_ (no claim) — credibility first.
-- 🎯 **Service-aware qualification** — pick what you're pitching and the tool finds the matching gap:
+- **Global search, plain English** — type `restaurants in Dubai` or `real estate agencies in Mumbai`. Uses Google Places Text Search with pagination (~60 leads/search).
+- **Live website health check** — server-side probe of every lead's site: missing, dead, social-page-only, no HTTPS, not mobile-friendly, slow. Timeouts are treated as _unverified_ (no claim) — credibility first.
+- **Service-aware qualification** — pick what you're pitching and the tool finds the matching gap:
 
   | You select | It finds | It pitches |
   |---|---|---|
@@ -46,11 +46,11 @@ Every lead is qualified by something the tool actually _checked_ ("I tried openi
   | **Mobile App** | busy restaurants/salons with **no online ordering** | an ordering/booking app |
   | **Desktop / Custom** | _(no Maps signal — honestly stays cold)_ | a soft "here's an idea" only |
 
-- 🗣️ **Review intelligence** — mines each business's real Google reviews to (a) detect customer-voiced demand ("couldn't book online") and (b) warmly personalise messages with genuine praise ("people love your biryani") — never quoting complaints back.
-- 🔥 **Hot / Warm / Cold scoring** — driven by gap severity × business strength, so your most pitchable leads float to the top.
-- ✍️ **Outreach that gets read** — Claude drafts 3 WhatsApp variants + 3 follow-ups + a plain "helpful heads-up" email per lead. No em dashes, no corporate filler, no fake urgency.
-- 💬 **Seamless WhatsApp** — one click opens the chat with the message pre-filled, correct country code for any country.
-- ✅ **Reached tracking** — mark a lead contacted; it persists across sessions and searches.
+- **Review intelligence** — mines each business's real Google reviews to (a) detect customer-voiced demand ("couldn't book online") and (b) warmly personalise messages with genuine praise ("people love your biryani") — never quoting complaints back.
+- **Hot / Warm / Cold scoring** — driven by gap severity × business strength, so your most pitchable leads float to the top.
+- **Outreach that gets read** — Claude drafts 3 WhatsApp variants + 3 follow-ups + a plain "helpful heads-up" email per lead. No em dashes, no corporate filler, no fake urgency.
+- **Seamless WhatsApp** — one click opens the chat with the message pre-filled, correct country code for any country.
+- **Reached tracking** — mark a lead contacted; it persists across sessions and searches.
 
 ---
 
