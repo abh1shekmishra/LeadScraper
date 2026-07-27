@@ -1,6 +1,7 @@
 # LeadScraper
 
 [![CI](https://github.com/abh1shekmishra/LeadScraper/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/abh1shekmishra/LeadScraper/actions/workflows/ci.yml)
+[![Live demo](https://img.shields.io/badge/demo-live-22c55e)](https://lead-scraper-gold.vercel.app)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 ![Next.js 16](https://img.shields.io/badge/Next.js-16-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
@@ -14,7 +15,7 @@ LeadScraper is a personal sales tool built for RedHut Studios (websites, mobile 
   <img src="docs/screenshots/dashboard.png" alt="LeadScraper dashboard" width="900">
 </p>
 
-> **▶ Live demo:** <!-- DEMO_URL --> _(deploy in one click — see [Live demo](#live-demo))_
+> **▶ Live demo: [lead-scraper-gold.vercel.app](https://lead-scraper-gold.vercel.app)**
 >
 > The demo runs in a keyless **demo mode**: it returns eight curated sample
 > businesses scored through the real pipeline, so you can explore the full UI
@@ -166,9 +167,10 @@ src/
 
 ## Live demo
 
-The public demo runs with `NEXT_PUBLIC_DEMO_MODE=1`, which makes every API route
-return the curated sample set instead of calling Google Places or Claude, so it
-costs nothing and needs no keys. To deploy your own:
+**[lead-scraper-gold.vercel.app](https://lead-scraper-gold.vercel.app)** runs with
+`NEXT_PUBLIC_DEMO_MODE=1`, which makes every API route return the curated sample
+set instead of calling Google Places or Claude, so it costs nothing and needs no
+keys. To deploy your own:
 
 1. Import the repo on [Vercel](https://vercel.com/new) (framework auto-detects as Next.js).
 2. Add one environment variable: `NEXT_PUBLIC_DEMO_MODE=1`.
