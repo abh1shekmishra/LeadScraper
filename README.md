@@ -1,6 +1,12 @@
 # LeadScraper
 
-**AI-powered lead generation that finds businesses with a _provable_ digital gap — and writes the outreach to win them.**
+[![CI](https://github.com/abh1shekmishra/LeadScraper/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/abh1shekmishra/LeadScraper/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+![Next.js 16](https://img.shields.io/badge/Next.js-16-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
+![Tests](https://img.shields.io/badge/tests-Vitest-6E9F18)
+
+**AI-powered lead generation that finds businesses with a _provable_ digital gap, and writes the outreach to win them.**
 
 LeadScraper is a personal sales tool built for RedHut Studios (websites, mobile apps, AR/VR). Instead of scraping a random list, it searches real businesses on Google Maps, **visits each one's website to detect an actual, provable problem** (no site, dead site, no virtual tour, no online ordering…), scores them, and drafts personalised WhatsApp-first outreach with Claude — while refusing to make a single claim it can't back up.
 
@@ -100,6 +106,21 @@ You'll need two API keys (see `.env.example`):
 
 1. **Google Places API (New)** + **Geocoding API** — [console.cloud.google.com](https://console.cloud.google.com) ($200/mo free credit covers thousands of searches)
 2. **Anthropic API** — [console.anthropic.com](https://console.anthropic.com)
+
+### Tests and checks
+
+The qualification logic — website-health classification, `pickServiceAngle`, and
+hot/warm/cold scoring — is pure and unit-tested with [Vitest](https://vitest.dev)
+(the website probe is covered with a stubbed `fetch`, including the credibility
+rules: bot-blocks stay `unverified`, non-resolving domains are `dead`).
+
+```bash
+npm test        # run the suite
+npm run lint     # ESLint (next/core-web-vitals + next/typescript)
+npm run build    # production build + type-check
+```
+
+Every push runs **lint → test → build** in CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 
 ---
 
