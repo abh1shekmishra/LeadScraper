@@ -14,6 +14,13 @@ LeadScraper is a personal sales tool built for RedHut Studios (websites, mobile 
   <img src="docs/screenshots/dashboard.png" alt="LeadScraper dashboard" width="900">
 </p>
 
+> **▶ Live demo:** <!-- DEMO_URL --> _(deploy in one click — see [Live demo](#live-demo))_
+>
+> The demo runs in a keyless **demo mode**: it returns eight curated sample
+> businesses scored through the real pipeline, so you can explore the full UI
+> with no Google/Claude keys and zero cost. Toggle **Website / AR / Mobile App**
+> to watch the pitch angle change per lead.
+
 ---
 
 ## Why it's different
@@ -154,6 +161,21 @@ src/
 - **Credibility as a constraint, not an afterthought.** The scoring, the probe classification, and the LLM prompt all enforce "no unprovable claims." A site that times out becomes `unverified` (no claim) rather than `dead`, because a timeout could just be bot-blocking.
 - **The gap drives everything.** One `pickServiceAngle()` function turns detected signals + the selected service into a single object that feeds scoring, the card badge, _and_ the outreach — so the UI and the message can never disagree.
 - **Cost-aware.** Reviews come inline with the search response; the website probe reuses one fetch per site; all probes run with `Promise.allSettled` and hard timeouts so one bad site never breaks a search.
+
+---
+
+## Live demo
+
+The public demo runs with `NEXT_PUBLIC_DEMO_MODE=1`, which makes every API route
+return the curated sample set instead of calling Google Places or Claude, so it
+costs nothing and needs no keys. To deploy your own:
+
+1. Import the repo on [Vercel](https://vercel.com/new) (framework auto-detects as Next.js).
+2. Add one environment variable: `NEXT_PUBLIC_DEMO_MODE=1`.
+3. Deploy.
+
+To run it for real instead, leave `NEXT_PUBLIC_DEMO_MODE` unset and add
+`GOOGLE_PLACES_API_KEY` and `ANTHROPIC_API_KEY` (see [`.env.example`](.env.example)).
 
 ---
 
