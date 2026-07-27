@@ -1,36 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LeadScraper
 
-## Getting Started
+**AI-powered lead generation that finds businesses with a _provable_ digital gap — and writes the outreach to win them.**
 
-First, run the development server:
+LeadScraper is a personal sales tool built for RedHut Studios (websites, mobile apps, AR/VR). Instead of scraping a random list, it searches real businesses on Google Maps, **visits each one's website to detect an actual, provable problem** (no site, dead site, no virtual tour, no online ordering…), scores them, and drafts personalised WhatsApp-first outreach with Claude — while refusing to make a single claim it can't back up.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="LeadScraper dashboard" width="900">
+</p>
+
+---
+
+## Why it's different
+
+Most "lead scrapers" hand you a spreadsheet of names. The hard part isn't finding businesses — it's finding the ones with a **real, demonstrable need** and reaching them credibly. LeadScraper is built around one principle:
+
+> **Never make a claim you can't prove.**
+
+Every lead is qualified by something the tool actually _checked_ ("I tried opening your site and it didn't load", "your listings have photos but no virtual tour"), and every message opens on that specific, true observation. If nothing is provably wrong, the tool says so and stays neutral — it never invents a problem to manufacture a pitch.
+
+---
+
+## What it does
+
+- 🔎 **Global search, plain English** — type `restaurants in Dubai` or `real estate agencies in Mumbai`. Uses Google Places Text Search with pagination (~60 leads/search).
+- 🩺 **Live website health check** — server-side probe of every lead's site: missing, dead, social-page-only, no HTTPS, not mobile-friendly, slow. Timeouts are treated as _unverified_ (no claim) — credibility first.
+- 🎯 **Service-aware qualification** — pick what you're pitching and the tool finds the matching gap:
+
+  | You select | It finds | It pitches |
+  |---|---|---|
+  | **Website** | no site / dead / social-only / not-mobile | a website |
+  | **AR / VR** | realtors, hotels, showrooms with **no virtual tour** | a virtual tour demo |
+  | **Mobile App** | busy restaurants/salons with **no online ordering** | an ordering/booking app |
+  | **Desktop / Custom** | _(no Maps signal — honestly stays cold)_ | a soft "here's an idea" only |
+
+- 🗣️ **Review intelligence** — mines each business's real Google reviews to (a) detect customer-voiced demand ("couldn't book online") and (b) warmly personalise messages with genuine praise ("people love your biryani") — never quoting complaints back.
+- 🔥 **Hot / Warm / Cold scoring** — driven by gap severity × business strength, so your most pitchable leads float to the top.
+- ✍️ **Outreach that gets read** — Claude drafts 3 WhatsApp variants + 3 follow-ups + a plain "helpful heads-up" email per lead. No em dashes, no corporate filler, no fake urgency.
+- 💬 **Seamless WhatsApp** — one click opens the chat with the message pre-filled, correct country code for any country.
+- ✅ **Reached tracking** — mark a lead contacted; it persists across sessions and searches.
+
+---
+
+## How it works
+
+```mermaid
+flowchart LR
+  A["Search<br/>'restaurants in Dubai'"] --> B["Google Places<br/>Text Search + pagination"]
+  B --> C["Website health probe<br/>+ content scan"]
+  B --> D["Review mining"]
+  C --> E["pickServiceAngle()<br/>website / AR-VR / app"]
+  D --> E
+  E --> F["Score<br/>hot / warm / cold"]
+  F --> G["Claude outreach<br/>WhatsApp + email"]
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The pipeline runs server-side in Next.js API routes. The website probe already downloads each site's HTML, so detecting extra signals (virtual tour, online ordering, app links) is effectively free — no extra requests.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Screenshots
 
-## Learn More
+| Lead cards + scoring | Outreach modal |
+|---|---|
+| ![Lead cards](docs/screenshots/lead-card.png) | ![Outreach modal](docs/screenshots/outreach-modal.png) |
 
-To learn more about Next.js, take a look at the following resources:
+| Filters / "what are you pitching" | AR/VR virtual-tour leads |
+|---|---|
+| ![Filters](docs/screenshots/filters.png) | ![AR leads](docs/screenshots/arvr.png) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tech stack
 
-## Deploy on Vercel
+| Layer | Choice |
+|---|---|
+| Framework | **Next.js 16** (App Router) + **TypeScript** |
+| Styling | **Tailwind CSS v4** — glassmorphism UI |
+| State | **Zustand** (per-card updates, `localStorage` persistence) |
+| Leads | **Google Places API (New)** — Text Search + Geocoding |
+| AI | **Anthropic API** — `claude-haiku-4-5` |
+| Outreach | `wa.me` deep links (no WhatsApp API needed) |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Getting started
+
+```bash
+git clone <your-repo-url>
+cd LeadScraper
+npm install
+
+# add your keys
+cp .env.example .env.local   # then fill in the values
+
+npm run dev                  # http://localhost:3000
+```
+
+You'll need two API keys (see `.env.example`):
+
+1. **Google Places API (New)** + **Geocoding API** — [console.cloud.google.com](https://console.cloud.google.com) ($200/mo free credit covers thousands of searches)
+2. **Anthropic API** — [console.anthropic.com](https://console.anthropic.com)
+
+---
+
+## Project structure
+
+```
+src/
+├─ app/
+│  ├─ api/
+│  │  ├─ search/route.ts          # primary: text search → probe → score
+│  │  ├─ leads/route.ts           # filter-panel path
+│  │  └─ generate-messages/route.ts
+│  ├─ page.tsx  ·  layout.tsx  ·  globals.css
+├─ components/
+│  ├─ FilterPanel/  ·  LeadCard/ (card + OutreachModal)  ·  SearchBar  ·  LeadGrid  ·  Header
+├─ lib/
+│  ├─ google-places.ts            # Places client (pagination, intl phone, reviews)
+│  ├─ website-health.ts           # site probe + content signal detection
+│  ├─ service-angles.ts           # pickServiceAngle() — the pitch engine
+│  ├─ reviews.ts                  # review mining (demand + warm personalisation)
+│  ├─ build-leads.ts              # assemble + score + competitor framing
+│  └─ claude.ts                   # outreach generation
+├─ store/useLeadStore.ts          # Zustand store
+└─ types/                         # lead.ts (scoring, ServiceAngle), filters.ts
+```
+
+---
+
+## Engineering notes
+
+- **Credibility as a constraint, not an afterthought.** The scoring, the probe classification, and the LLM prompt all enforce "no unprovable claims." A site that times out becomes `unverified` (no claim) rather than `dead`, because a timeout could just be bot-blocking.
+- **The gap drives everything.** One `pickServiceAngle()` function turns detected signals + the selected service into a single object that feeds scoring, the card badge, _and_ the outreach — so the UI and the message can never disagree.
+- **Cost-aware.** Reviews come inline with the search response; the website probe reuses one fetch per site; all probes run with `Promise.allSettled` and hard timeouts so one bad site never breaks a search.
+
+---
+
+## License
+
+MIT © 2026 RedHut Studios
