@@ -122,8 +122,8 @@ export function demoOutreach(
   return {
     emailSubject: `A quick idea for ${name}`,
     emailBody:
-      `Hi ${name} team,\n\n${obs}. ${cons}.\n\n${ask}. No cost, no pressure, just something useful you can keep either way.\n\nBest,\nAbhishek\nRedHut Studios`,
-    whatsappDirect: `Hi, this is Abhishek from RedHut Studios. ${obs}. ${cons}. ${ask}?`,
+      `Hi ${name} team,\n\n${obs}. ${cons}.\n\n${ask}. No cost, no pressure, just something useful you can keep either way.\n\nBest,\nAbhishek`,
+    whatsappDirect: `Hi, this is Abhishek. ${obs}. ${cons}. ${ask}?`,
     whatsappCurious: `Hey! I was looking at ${name} and noticed one quick thing that's probably costing you customers. Mind if I show you? ${ask}?`,
     whatsappFriendly: `Hi ${name}! Love what you do. ${obs}, and I think a small fix would help a lot. ${ask}? Totally free.`,
     followUp1: `Hi again! Following up on ${name}. ${cons}, and it's a genuinely quick fix. Happy to just send over a rough idea if that's easier?`,

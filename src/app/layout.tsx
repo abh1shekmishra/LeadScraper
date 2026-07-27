@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "LeadScraper — RedHut Studios",
-  description: "AI-powered lead generation for RedHut Studios",
+  title: "LeadScraper — AI lead generation",
+  description: "AI-powered lead generation that finds businesses with a provable digital gap and drafts the outreach.",
 };
 
 export default function RootLayout({

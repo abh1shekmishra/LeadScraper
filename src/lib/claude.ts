@@ -24,7 +24,7 @@ export async function generateOutreach(
   const angle = pickServiceAngle(business, siteHealth, serviceTypes);
   const reviewContext = reviewsForPrompt(business.reviews);
 
-  const prompt = `Write WhatsApp-first cold outreach for Abhishek from RedHut Studios (builds websites, apps, AR/VR).
+  const prompt = `Write WhatsApp-first cold outreach for Abhishek, an independent developer who builds websites, apps, and AR/VR.
 
 BUSINESS
 Name: ${name}
@@ -58,7 +58,7 @@ WHATSAPP VERSION 3 (casual, reads like a real text): 45 to 60 words. Relaxed and
 
 EMAIL (this is a HELPFUL HEADS-UP, not a pitch — write it so a busy owner actually reads it and doesn't feel sold to):
 Subject: 3 to 6 words, lowercase like a real person typed it, no marketing capitalisation, no buzzwords. Good examples: "quick note about ${name}", "came across ${name}", "a thought for ${name}".
-Body: 60 to 100 words, plain short sentences. Flow: "Hi, I'm Abhishek." + (optional one-line genuine nod to their reviews) + "I went looking for ${name} online and noticed [the observation, said plainly]." + "Just thought you'd want to know, since [why it matters, one line]." + one plain line: "${angle.serviceLine} for small businesses." + the soft offer (${angle.ask}). + "No pressure either way." + sign off on its own line: "Abhishek, RedHut Studios". No bullet points, no em dashes, no banned phrases, nothing pushy.
+Body: 60 to 100 words, plain short sentences. Flow: "Hi, I'm Abhishek." + (optional one-line genuine nod to their reviews) + "I went looking for ${name} online and noticed [the observation, said plainly]." + "Just thought you'd want to know, since [why it matters, one line]." + one plain line: "${angle.serviceLine} for small businesses." + the soft offer (${angle.ask}). + "No pressure either way." + sign off on its own line: "Abhishek". No bullet points, no em dashes, no banned phrases, nothing pushy.
 
 FOLLOW-UP 1 (WhatsApp, day 3): 35 to 50 words. A different angle from message 1.${reviewCount > 0 ? ` You can reference their ${reviewCount} reviews.` : ''} Still specific, not "just checking in". No em dashes.
 FOLLOW-UP 2 (WhatsApp, day 7): 35 to 50 words. Lead with: "Hey, Abhishek again. I put together a rough idea of what ${angle.mockupNoun} for ${name} could look like. Want me to send it over?" No em dashes.
@@ -70,7 +70,7 @@ Return ONLY valid JSON, nothing else:
   const message = await client.messages.create({
     model: 'claude-haiku-4-5',
     max_tokens: 2048,
-    system: `You write cold outreach for Abhishek from RedHut Studios, sent mostly over WhatsApp. Every message is human, warm, and genuinely helpful — like a real person giving a useful heads-up, never a salesperson. Each is built on the one specific observation you are given; you never invent problems or make claims beyond it. You may warmly reference genuine praise from a business's reviews, but you NEVER mention or paraphrase complaints. The email is a plain, friendly heads-up, not a pitch. You never use em dashes (— or –). You never mention experience, portfolio, or company history. You always return only valid JSON.`,
+    system: `You write cold outreach for Abhishek, an independent developer, sent mostly over WhatsApp. Every message is human, warm, and genuinely helpful — like a real person giving a useful heads-up, never a salesperson. Each is built on the one specific observation you are given; you never invent problems or make claims beyond it. You may warmly reference genuine praise from a business's reviews, but you NEVER mention or paraphrase complaints. The email is a plain, friendly heads-up, not a pitch. You never use em dashes (— or –). You never mention experience, portfolio, or company history. You always return only valid JSON.`,
     messages: [{ role: 'user', content: prompt }],
   });
 
@@ -107,7 +107,7 @@ function buildFallback(
   const reviewProof = reviewCount > 0 ? ` You've got ${reviewCount} reviews, so the customers are clearly there.` : '';
   return {
     emailSubject: angle.hasProblem ? `quick note about ${name}` : `came across ${name}`,
-    emailBody: `Hi, I'm Abhishek.\n\nI went looking for ${name} online and noticed ${angle.observation}. Just thought you'd want to know, since ${angle.consequence}.\n\n${angle.serviceLine} for small businesses. ${angle.ask}. No pressure either way.\n\nAbhishek, RedHut Studios`,
+    emailBody: `Hi, I'm Abhishek.\n\nI went looking for ${name} online and noticed ${angle.observation}. Just thought you'd want to know, since ${angle.consequence}.\n\n${angle.serviceLine} for small businesses. ${angle.ask}. No pressure either way.\n\nAbhishek`,
     whatsappCurious: `Hi! I'm Abhishek. ${cap(angle.observation)}. ${cap(angle.consequence)}. ${angle.ask}.`,
     whatsappDirect: `Hey! I'm Abhishek. ${cap(angle.observation)}, and honestly ${angle.consequence}. ${angle.ask}.`,
     whatsappFriendly: `Hi, Abhishek here. ${cap(angle.observation)}. ${angle.ask}.`,
@@ -121,7 +121,7 @@ export async function generateFilterSuggestions(
   serviceTypes: ServiceType[],
   existingIndustries: Industry[],
 ): Promise<AISuggestion[]> {
-  const prompt = `RedHut Studios offers: ${serviceTypes.join(', ')}
+  const prompt = `Abhishek offers: ${serviceTypes.join(', ')}
 They have already considered: ${existingIndustries.join(', ') || 'none yet'}
 
 Suggest 4 to 5 specific business types they should search for that would strongly benefit from ${serviceTypes.join(' / ')}. Be specific and practical.

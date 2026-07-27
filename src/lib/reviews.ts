@@ -1,7 +1,7 @@
 import { BusinessReview, ReviewSignal } from '@/types/lead';
 
 // Mine a business's own Google reviews for evidence that customers are running
-// into the exact problems RedHut solves. When a real customer writes "couldn't
+// into the exact problems these services solve. When a real customer writes "couldn't
 // find their menu online" or "had to call to book", that's not us guessing they
 // have a problem — it's demand, voiced out loud. We use it to QUALIFY and rank
 // (painTags are for Abhishek's eyes), never to quote back in a cold message.

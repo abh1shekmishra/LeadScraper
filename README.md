@@ -9,7 +9,7 @@
 
 **AI-powered lead generation that finds businesses with a _provable_ digital gap, and writes the outreach to win them.**
 
-LeadScraper is a personal sales tool built for RedHut Studios (websites, mobile apps, AR/VR). Instead of scraping a random list, it searches real businesses on Google Maps, **visits each one's website to detect an actual, provable problem** (no site, dead site, no virtual tour, no online ordering…), scores them, and drafts personalised WhatsApp-first outreach with Claude — while refusing to make a single claim it can't back up.
+LeadScraper is a personal sales-prospecting tool for an independent developer offering websites, mobile apps, and AR/VR. Instead of scraping a random list, it searches real businesses on Google Maps, **visits each one's website to detect an actual, provable problem** (no site, dead site, no virtual tour, no online ordering…), scores them, and drafts personalised WhatsApp-first outreach with Claude — while refusing to make a single claim it can't back up.
 
 <p align="center">
   <img src="docs/screenshots/dashboard.png" alt="LeadScraper dashboard" width="900">
@@ -183,4 +183,4 @@ To run it for real instead, leave `NEXT_PUBLIC_DEMO_MODE` unset and add
 
 ## License
 
-MIT © 2026 RedHut Studios
+MIT © 2026 Abhishek Mishra
