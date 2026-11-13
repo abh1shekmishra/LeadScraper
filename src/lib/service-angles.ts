@@ -42,8 +42,9 @@ function websiteAngle(
   switch (gap) {
     case 'no_website':
       return { ...base, severity: 'critical', hasProblem: true, mockupNoun: 'a site',
-        observation: `I searched for ${category} in ${area} and ${name} doesn't have a website`,
-        consequence: 'anyone looking for you right now ends up at a competitor instead',
+        // Only what we checked: the listing has no website link. They may have a site elsewhere.
+        observation: `I found ${name} on Google Maps while looking at ${category} in ${area}, and the listing doesn't link to a website`,
+        consequence: 'people who find you there have nowhere to click through to see your work, so many move on to the next listing',
         ask: `Want me to put together a quick mockup of what a site for ${name} could look like? No strings`,
         tag: 'No website at all',
         opportunity: reviews > 0 ? `No website — ${reviews} customers with nowhere to find them online` : 'No website — invisible to anyone searching online' };
@@ -56,7 +57,7 @@ function websiteAngle(
         opportunity: reviews > 0 ? `Website is down — ${reviews} customers hit a dead link` : 'Website is down — anyone who looks them up hits a dead link' };
     case 'social_only':
       return { ...base, severity: 'high', hasProblem: true, mockupNoun: 'a proper site',
-        observation: probeObs || "you're using a social media page instead of a real website",
+        observation: probeObs || 'the website link on your Google listing goes to a social media page rather than a website',
         consequence: "people can't easily find your details or book you, and you barely show up on Google",
         ask: `Want me to mock up a simple proper site for ${name}? No strings`,
         tag: 'Only a social media page, no real site',
@@ -84,13 +85,36 @@ function websiteAngle(
         tag: 'Slow-loading website',
         opportunity: 'Slow website — visitors leave before it loads' };
     }
-    default: // healthy / unverified / no probe — nothing provable, stay neutral
+    default: { // healthy / unverified / no probe
+      // A working site can still have a provable, checkable weakness.
+      const psi = siteHealth?.psiMobile;
+      if (psi != null && psi < 50) {
+        return { ...base, severity: 'medium', hasProblem: true, mockupNoun: 'a faster site',
+          badge: { label: `Speed ${psi}/100`, tone: 'warm' },
+          observation: `I ran ${name}'s website through Google's PageSpeed test and it scored ${psi}/100 on mobile`,
+          consequence: 'Google factors page speed into search rankings, and most mobile visitors leave a slow page before it loads',
+          ask: "Want me to send over the few things I'd fix first? No strings",
+          tag: `PageSpeed ${psi}/100 on mobile`,
+          opportunity: `Google PageSpeed ${psi}/100 on mobile — provable speed fix` };
+      }
+      const year = siteHealth?.copyrightYear;
+      if (year && new Date().getFullYear() - year >= 3) {
+        return { ...base, severity: 'medium', hasProblem: true, mockupNoun: 'a refreshed site',
+          badge: { label: `Footer © ${year}`, tone: 'warm' },
+          observation: `the footer on ${name}'s website still says © ${year}`,
+          consequence: 'small signs like that make visitors wonder whether the site, or the business, is still active',
+          ask: 'Want me to show you what a refreshed version could look like? No strings',
+          tag: `Site footer still says © ${year}`,
+          opportunity: `Site looks unmaintained since ${year} — refresh pitch` };
+      }
+      // Nothing provable — stay neutral.
       return { ...base, severity: 'none', hasProblem: false, mockupNoun: 'an updated site',
         observation: `I came across ${name} while looking at ${category} in ${area}`,
         consequence: 'I think your website could be working harder for you',
         ask: 'Want me to share a couple of specific ideas? No strings',
         tag: gap === 'healthy' ? 'Has a working website' : null,
         opportunity: 'Has a working site — lead with one specific improvement' };
+    }
   }
 }
 

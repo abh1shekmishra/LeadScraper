@@ -15,7 +15,7 @@ const TIMEOUT_MS = 9000;
 const SLOW_MS = 6000;          // a document that takes longer than this to arrive is genuinely slow
 const MAX_BYTES = 120_000;     // enough to capture <head> for the viewport check
 
-const BROWSER_HEADERS = {
+export const BROWSER_HEADERS = {
   'User-Agent':
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
     '(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -24,20 +24,45 @@ const BROWSER_HEADERS = {
 };
 
 // Hosts that mean "no real website" — a social/link page used in place of a site.
+// Phrased about the Google listing (what we checked), since they may have a site elsewhere.
 function matchSocial(host: string): string | null {
-  if (/(^|\.)(facebook\.com|fb\.me|fb\.com)$/.test(host))
-    return "you're using a Facebook page instead of a real website";
-  if (/(^|\.)(instagram\.com|instagr\.am)$/.test(host))
-    return "you're using an Instagram page instead of a real website";
-  if (/(^|\.)(linktr\.ee|linktree\.com)$/.test(host))
-    return 'your link is just a Linktree, not an actual website';
-  if (/(^|\.)(wa\.me|api\.whatsapp\.com)$/.test(host))
-    return "your website link just opens WhatsApp, there's no actual site";
-  if (/(^|\.)business\.site$/.test(host))
-    return "you're using a basic auto-generated Google page instead of a real website";
-  if (/(^|\.)sites\.google\.com$/.test(host))
-    return "you're using a basic Google Sites page instead of a real website";
+  const listing = 'the website link on your Google listing goes to';
+  if (/(^|\.)(facebook\.com|fb\.me|fb\.com)$/.test(host)) return `${listing} your Facebook page rather than a website`;
+  if (/(^|\.)(instagram\.com|instagr\.am)$/.test(host)) return `${listing} your Instagram page rather than a website`;
+  if (/(^|\.)(linktr\.ee|linktree\.com)$/.test(host)) return `${listing} a Linktree rather than a website`;
+  if (/(^|\.)(wa\.me|api\.whatsapp\.com)$/.test(host)) return `${listing} WhatsApp rather than a website`;
+  if (/(^|\.)business\.site$/.test(host)) return `${listing} a basic auto-generated Google page rather than a full website`;
+  if (/(^|\.)sites\.google\.com$/.test(host)) return `${listing} a basic Google Sites page rather than a full website`;
   return null;
+}
+
+// Emails published on a page (plain text or mailto, incl. &#64; obfuscation).
+// Drops asset filenames and builder/tracker addresses that aren't the business.
+const EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi;
+const JUNK_EMAIL = /\.(png|jpe?g|gif|webp|svg|css|js)$|@(example|domain|email|yourdomain|sentry|wixpress|sentry-next)\.|^(noreply|no-reply|donotreply|user|name|your)@/i;
+
+export function extractEmails(html: string): string[] {
+  const text = html.replace(/&#64;|&#x40;|\[at\]|\(at\)/gi, '@');
+  const found = new Set<string>();
+  for (const m of text.match(EMAIL_RE) ?? []) {
+    const e = m.toLowerCase().replace(/^mailto:/, '');
+    if (!JUNK_EMAIL.test(e)) found.add(e);
+  }
+  return [...found];
+}
+
+// The latest year in a static copyright line ("© 2015-2019" -> 2019). Returns
+// null when the page updates its year with JS, so we never claim a stale footer
+// that the visitor actually sees as current.
+export function staleCopyrightYear(html: string): number | undefined {
+  if (/getFullYear/.test(html)) return undefined;
+  const now = new Date().getFullYear();
+  let best: number | undefined;
+  for (const m of html.matchAll(/(?:©|&copy;|&#169;|copyright)\s*(?:(?:19|20)\d{2}\s*(?:-|–|&ndash;)\s*)?((?:19|20)\d{2})/gi)) {
+    const y = Number(m[1]);
+    if (y >= 1995 && y <= now && (!best || y > best)) best = y;
+  }
+  return best;
 }
 
 function hasViewport(html: string): boolean {
@@ -46,8 +71,12 @@ function hasViewport(html: string): boolean {
 
 // Scan the page for what they ALREADY have, so we never pitch something that's
 // already there. Drives the AR/VR and Mobile App angles.
-function detectFeatures(html: string): Pick<SiteHealth, 'hasImmersive' | 'hasOnlineOrdering' | 'hasAppLinks'> {
+function detectFeatures(
+  html: string,
+): Pick<SiteHealth, 'hasImmersive' | 'hasOnlineOrdering' | 'hasAppLinks' | 'emails' | 'copyrightYear'> {
   return {
+    emails: extractEmails(html),
+    copyrightYear: staleCopyrightYear(html),
     hasImmersive:
       /virtual tour|matterport|3d ?tour|360[\s°-]*(view|tour|degree)|walk ?through|kuula|3dvista|panorama|view in 3d|augmented reality|ar (view|try)|try[\s-]?on/i.test(html),
     hasOnlineOrdering:
@@ -93,7 +122,7 @@ async function probe(url: string): Promise<ProbeResult> {
 }
 
 // Read at most MAX_BYTES of the body so we never pull a huge page into memory.
-async function readCapped(res: Response): Promise<string> {
+export async function readCapped(res: Response): Promise<string> {
   const reader = res.body?.getReader();
   if (!reader) return '';
   const decoder = new TextDecoder();
@@ -115,9 +144,11 @@ async function readCapped(res: Response): Promise<string> {
 }
 
 export async function checkWebsiteHealth(website: string | null): Promise<SiteHealth> {
+  // We only know the Google listing has no link; they may have a site elsewhere.
+  // So the claim is about the listing, which is what we actually checked.
   if (!website || !website.trim()) {
     return { gap: 'no_website', https: false, mobileFriendly: null, loadMs: null,
-      observation: "you don't have a website at all" };
+      observation: "your Google Maps listing doesn't link to a website" };
   }
 
   let parsed: URL;
@@ -136,7 +167,21 @@ export async function checkWebsiteHealth(website: string | null): Promise<SiteHe
       loadMs: null, observation: socialObservation };
   }
 
-  const result = await probe(parsed.toString());
+  let result = await probe(parsed.toString());
+
+  // Before calling a site broken, try the obvious alternatives a visitor would
+  // effectively reach: the other www/non-www host, and the homepage when Maps
+  // links a deep page. Only if those fail too do we stand behind "broken".
+  const failedHard = (r: ProbeResult) =>
+    (!r.ok && r.reason === 'dead') || (r.ok && (r.status === 404 || r.status === 410));
+  if (failedHard(result)) {
+    const altHost = parsed.hostname.startsWith('www.') ? parsed.hostname.slice(4) : `www.${parsed.hostname}`;
+    for (const alt of [`${parsed.protocol}//${parsed.host}/`, `https://${altHost}/`]) {
+      if (alt === parsed.toString()) continue;
+      const r = await probe(alt);
+      if (!failedHard(r)) { result = r; break; }
+    }
+  }
 
   if (!result.ok) {
     if (result.reason === 'dead') {
@@ -148,27 +193,40 @@ export async function checkWebsiteHealth(website: string | null): Promise<SiteHe
       loadMs: null, observation: '' };
   }
 
-  const { status, html, finalUrl, loadMs } = result;
+  const { status } = result;
+  let { html, finalUrl, loadMs } = result;
 
-  // Bot-blocking / rate-limit / temporary unavailable → can't confirm, make no claim.
-  if (status === 403 || status === 429 || status === 503) {
-    return { gap: 'unverified', https: true, mobileFriendly: null, loadMs, observation: '' };
-  }
-  // Hard failures we can stand behind.
-  if (status === 404 || status === 410 || status >= 500) {
+  // Hard failures we can stand behind: the page itself says "not found".
+  if (status === 404 || status === 410) {
     return { gap: 'dead', https: parsed.protocol === 'https:', mobileFriendly: null, loadMs,
       observation: 'your website link is up but the page returns an error' };
+  }
+  // 5xx (Cloudflare 520s, host 502s), 403, 429: what a bot gets is often not what
+  // a visitor gets. Can't confirm, so make no claim.
+  if (status >= 500 || status === 403 || status === 429) {
+    return { gap: 'unverified', https: true, mobileFriendly: null, loadMs, observation: '' };
   }
   // Other 4xx → be conservative, no claim.
   if (status >= 400) {
     return { gap: 'unverified', https: true, mobileFriendly: null, loadMs, observation: '' };
   }
 
-  // Successful load. What does the page already have, and is it secure?
-  const features = detectFeatures(html);
+  // Successful load. Is it secure?
   let finalIsHttps = true;
   try { finalIsHttps = new URL(finalUrl).protocol === 'https:'; } catch { /* keep default */ }
 
+  // Google Maps often stores an old http:// link. Chrome and Safari upgrade to
+  // HTTPS on their own when the site supports it, so visitors see a padlock.
+  // Only claim "Not Secure" when HTTPS itself genuinely fails.
+  if (!finalIsHttps) {
+    const secure = await probe(`https://${parsed.host}${parsed.pathname}${parsed.search}`);
+    if (secure.ok && secure.status < 400 && /^https:/i.test(secure.finalUrl)) {
+      ({ html, finalUrl, loadMs } = secure);
+      finalIsHttps = true;
+    }
+  }
+
+  const features = detectFeatures(html);
   if (!finalIsHttps) {
     return { gap: 'no_ssl', https: false, mobileFriendly: hasViewport(html), loadMs, ...features,
       observation: "your website runs on an unsecured connection, so browsers show visitors a 'Not Secure' warning" };

@@ -46,3 +46,9 @@ AGENTS.md
 CLAUDE.md
 .claude
 coverage
+
+# agent: scraper binary + local lead database + WhatsApp Web cache
+/bin
+/data
+.wwebjs_cache/
+.wwebjs_auth/

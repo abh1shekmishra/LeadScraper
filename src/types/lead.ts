@@ -8,6 +8,7 @@ export interface BusinessReview {
 export interface BusinessInfo {
   placeId: string;
   name: string;
+  listingTitle?: string; // raw Google Maps title when `name` was cleaned (agent only)
   address: string;
   phone: string | null;
   internationalPhone: string | null; // E.164-style with country code, for WhatsApp deep links
@@ -50,6 +51,9 @@ export interface SiteHealth {
   hasImmersive?: boolean;     // virtual tour / 360 / 3D / AR already on the site
   hasOnlineOrdering?: boolean; // order / book / reserve / cart already on the site
   hasAppLinks?: boolean;       // links to an App Store / Play Store listing
+  emails?: string[];           // emails published on the homepage
+  copyrightYear?: number;      // latest year in a static footer copyright line
+  psiMobile?: number;          // Google PageSpeed mobile performance score 0-100 (agent only)
 }
 
 export type Badge = { label: string; tone: 'hot' | 'warm' } | null;

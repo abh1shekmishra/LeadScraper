@@ -5,7 +5,7 @@ import { ServiceType, Industry } from '@/types/filters';
 import { reviewsForPrompt } from '@/lib/reviews';
 import { pickServiceAngle, extractArea } from '@/lib/service-angles';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+export const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 function stripEmDashes(s: string) {
   return s.replace(/—/g, '-').replace(/–/g, '-');
@@ -16,6 +16,7 @@ export async function generateOutreach(
   serviceTypes: ServiceType[],
   siteHealth?: SiteHealth,
   competitorNote?: string,
+  previewUrl?: string, // agent: a concept site already built for them
 ): Promise<OutreachDraft> {
   const area = extractArea(business.address);
   const category = business.category.toLowerCase();
@@ -24,7 +25,7 @@ export async function generateOutreach(
   const angle = pickServiceAngle(business, siteHealth, serviceTypes);
   const reviewContext = reviewsForPrompt(business.reviews);
 
-  const prompt = `Write WhatsApp-first cold outreach for Abhishek, an independent developer who builds websites, apps, and AR/VR.
+  const prompt = `Write WhatsApp-first cold outreach for Abhishek, an independent developer who builds websites and apps.
 
 BUSINESS
 Name: ${name}
@@ -36,7 +37,9 @@ WHAT ABHISHEK NOTICED (this is true and was personally checked — build EVERY m
 ${angle.hasProblem
   ? `"${angle.observation}". Why it matters: ${angle.consequence}.`
   : `Nothing is visibly broken, so do NOT claim any problem. Angle: ${angle.observation}, and ${angle.consequence}.`}
-THE ASK (keep it exactly this small and pressure-free): ${angle.ask}.
+THE ASK (keep it exactly this small and pressure-free): ${previewUrl
+  ? `Abhishek already made a rough concept preview of a site for them, here: ${previewUrl} . Share this exact link once in each WhatsApp version and in the email, and ask if they'd like him to turn it into the real thing. No strings`
+  : angle.ask}.
 ${competitorNote ? `\nCONTEXT YOU MAY USE (only if it fits naturally, max once across all messages): ${competitorNote}\n` : ''}
 ${reviewContext ? `REAL CUSTOMER REVIEWS (for warmth only):
 ${reviewContext}
@@ -51,6 +54,8 @@ HARD RULES:
 - Don't explain your services in detail, don't mention past work or experience
 - ${angle.hasProblem ? 'State the observation as a fact you personally checked, never as an accusation' : 'Do not pretend anything is broken'}
 - Keep every message specific to THIS business
+- If the business name reads like a generic description (e.g. "Interior designer and decor") rather than a brand, don't repeat it; say "your studio" / "your business" instead
+- Use the short everyday form of the name (drop "LLC", "Pvt Ltd", "Private Limited", "L.L.C", "SPC", "Inc.")
 
 WHATSAPP VERSION 1 (blunt and direct): 50 to 65 words. Greeting + "I'm Abhishek" + the observation stated plainly + why it matters + the ask.
 WHATSAPP VERSION 2 (warm but still direct): 50 to 65 words. Friendlier opener (a genuine nod to their reviews is great here if you have one), same honesty, the ask phrased naturally.
@@ -61,7 +66,9 @@ Subject: 3 to 6 words, lowercase like a real person typed it, no marketing capit
 Body: 60 to 100 words, plain short sentences. Flow: "Hi, I'm Abhishek." + (optional one-line genuine nod to their reviews) + "I went looking for ${name} online and noticed [the observation, said plainly]." + "Just thought you'd want to know, since [why it matters, one line]." + one plain line: "${angle.serviceLine} for small businesses." + the soft offer (${angle.ask}). + "No pressure either way." + sign off on its own line: "Abhishek". No bullet points, no em dashes, no banned phrases, nothing pushy.
 
 FOLLOW-UP 1 (WhatsApp, day 3): 35 to 50 words. A different angle from message 1.${reviewCount > 0 ? ` You can reference their ${reviewCount} reviews.` : ''} Still specific, not "just checking in". No em dashes.
-FOLLOW-UP 2 (WhatsApp, day 7): 35 to 50 words. Lead with: "Hey, Abhishek again. I put together a rough idea of what ${angle.mockupNoun} for ${name} could look like. Want me to send it over?" No em dashes.
+${previewUrl
+  ? `FOLLOW-UP 2 (WhatsApp, day 7): 35 to 50 words. Lead with: "Hey, Abhishek again. Did you get a chance to look at the preview I made for ${name}?" then the link ${previewUrl} again and one line on what the real version would add. No em dashes.`
+  : `FOLLOW-UP 2 (WhatsApp, day 7): 35 to 50 words. Lead with: "Hey, Abhishek again. I put together a rough idea of what ${angle.mockupNoun} for ${name} could look like. Want me to send it over?" No em dashes.`}
 FOLLOW-UP 3 (WhatsApp, day 14): 25 to 40 words. Warm, no pressure, leave the door open, sign off cleanly. No em dashes.
 
 Return ONLY valid JSON, nothing else:

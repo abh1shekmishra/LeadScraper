@@ -10,6 +10,8 @@ export default function Header() {
         <span className="text-xs text-white/50 font-medium">AI lead gen</span>
       </div>
       <div className="ml-auto flex items-center gap-2">
+        <a href="/activity" className="text-xs text-indigo-300 hover:underline mr-3">Activity</a>
+        <a href="/queue" className="text-xs text-indigo-300 hover:underline mr-3">Approval queue</a>
         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow shadow-emerald-400/50" />
         <span className="text-xs text-white/40">Local</span>
       </div>

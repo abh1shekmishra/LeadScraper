@@ -3,6 +3,7 @@ import type { BusinessInfo, ServiceAngle, SiteHealth } from '@/types/lead';
 import { gapBadge, scoreLeadQualification } from '@/types/lead';
 import { extractArea, pickServiceAngle } from '@/lib/service-angles';
 import { checkWebsiteHealth, hasRealSite } from '@/lib/website-health';
+import { analyzeReviews } from '@/lib/reviews';
 
 // Fixtures. Each test overrides only the fields it cares about.
 function business(extra: Partial<BusinessInfo> = {}): BusinessInfo {
@@ -216,6 +217,67 @@ describe('checkWebsiteHealth (no network paths)', () => {
     vi.stubGlobal('fetch', vi.fn(async () => streamResponse(200, html, 'https://acme.example')));
     const res = await checkWebsiteHealth('https://acme.example');
     expect(res.gap).toBe('healthy');
+  });
+
+  const mobileHtml = '<html><head><meta name="viewport" content="width=device-width"></head></html>';
+
+  it('does not claim "Not Secure" for an http:// link when the site also serves HTTPS', async () => {
+    // Maps stores http://, but browsers upgrade to HTTPS, so visitors see a padlock.
+    vi.stubGlobal('fetch', vi.fn(async (u: URL | string) =>
+      streamResponse(200, mobileHtml, String(u))));
+    const res = await checkWebsiteHealth('http://acme.example/');
+    expect(res.gap).toBe('healthy');
+  });
+
+  it('makes no claim on 5xx (Cloudflare 520 / host 502 are often bot-only)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (u: URL | string) => streamResponse(520, '', String(u))));
+    expect((await checkWebsiteHealth('https://acme.example/')).gap).toBe('unverified');
+  });
+
+  it('does not call a site dead when only the www (or non-www) host fails', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (u: URL | string) => {
+      if (String(u).includes('www.')) {
+        const err = new Error('getaddrinfo ENOTFOUND') as Error & { cause?: { code?: string } };
+        err.cause = { code: 'ENOTFOUND' };
+        throw err;
+      }
+      return streamResponse(200, mobileHtml, String(u));
+    }));
+    expect((await checkWebsiteHealth('https://www.acme.example/')).gap).toBe('healthy');
+  });
+
+  it('checks the homepage before calling a deep Maps link dead', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (u: URL | string) =>
+      String(u).includes('/old-page') ? streamResponse(404, '', String(u)) : streamResponse(200, mobileHtml, String(u))));
+    expect((await checkWebsiteHealth('https://acme.example/old-page?utm=gmb')).gap).toBe('healthy');
+  });
+
+  it('claims "Not Secure" only when HTTPS genuinely fails', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (u: URL | string) => {
+      if (String(u).startsWith('https:')) {
+        const err = new Error('connect ECONNREFUSED') as Error & { cause?: { code?: string } };
+        err.cause = { code: 'ECONNREFUSED' };
+        throw err;
+      }
+      return streamResponse(200, mobileHtml, String(u));
+    }));
+    const res = await checkWebsiteHealth('http://acme.example/');
+    expect(res.gap).toBe('no_ssl');
+  });
+});
+
+describe('review pain patterns (no false positives on ordinary praise)', () => {
+  const sig = (text: string) => analyzeReviews([{ rating: 5, text, when: '' }]);
+  it('ignores praise that merely mentions sites, appointments or old things', () => {
+    expect(sig('They came on site and the team was great, old house looks new').hasDigitalPain).toBe(false);
+    expect(sig('No appointment needed, walked in and they helped right away').hasDigitalPain).toBe(false);
+    expect(sig("Couldn't get an appointment for weeks, they are that popular").hasDigitalPain).toBe(false);
+    expect(sig('Their website showed my old kitchen photos, love it').hasDigitalPain).toBe(false);
+  });
+  it('still catches real digital pain', () => {
+    expect(sig('There is no online booking, I had to call three times').painTags).toContain('A reviewer wanted online booking');
+    expect(sig("I couldn't book online at all").painTags).toContain('A reviewer wanted online booking');
+    expect(sig('Their website is outdated and hard to navigate').painTags).toContain('A reviewer found their website outdated / broken');
   });
 });
 

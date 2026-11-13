@@ -71,6 +71,37 @@ body {
   color: #fff;
 }
 
+/* --- Ops console (/activity): its own flat surface, no glass, no gradients --- */
+.ops {
+  --ops-bg: #0a0c0f;
+  --ops-surface: #0f1216;
+  --ops-raised: #14181d;
+  --ops-line: #1d232a;
+  --ops-line-strong: #2a323c;
+  --ops-text: #e4e8ee;
+  --ops-muted: #8a93a0;
+  --ops-faint: #58616d;
+  --ops-live: #7fe0c2;      /* the one accent: things happening now */
+  --ops-email: #9bbcf5;
+  --ops-wa: #86d9a8;
+  --ops-warn: #e9c46a;
+  --ops-err: #ee8f8f;
+  background: var(--ops-bg);
+  color: var(--ops-text);
+  isolation: isolate;
+}
+.ops ::selection { background: #2b4a42; color: var(--ops-text); }
+.ops .num { font-variant-numeric: tabular-nums; }
+.ops :focus-visible { outline: 2px solid var(--ops-live); outline-offset: 2px; border-radius: 4px; }
+@keyframes ops-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ops-in { animation: ops-in 180ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .ops-in { animation: none; }
+}
+
 /* Modal entrance */
 @keyframes pop-in {
   from { opacity: 0; transform: translateY(8px) scale(0.98); }

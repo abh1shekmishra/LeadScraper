@@ -18,7 +18,9 @@ const PAIN_PATTERNS: PainPattern[] = [
   },
   {
     tag: 'A reviewer wanted online booking',
-    re: /\b(no|without|lack of|couldn'?t|can'?t)\s+(online\s+)?(booking|reservation|appointment)\b|\bhad to call\b[^.]*\b(book|reserve|appointment)\b|\bbooking\b[^.]*\b(only by phone|by phone only)\b/i,
+    // "online" is required: "no appointment needed" / "couldn't get an appointment"
+    // mean walk-ins or a busy business, not a missing booking system.
+    re: /\b(no|without|lack of)\s+online\s+(booking|reservations?|appointments?)\b|\b(couldn'?t|can'?t|could not|cannot|unable to)\s+(book|reserve|schedule)\b[^.]*\bonline\b|\bbooking\b[^.]*\b(only by phone|by phone only)\b/i,
   },
   {
     tag: 'A reviewer wanted online ordering / delivery',
@@ -30,7 +32,9 @@ const PAIN_PATTERNS: PainPattern[] = [
   },
   {
     tag: 'A reviewer found their website outdated / broken',
-    re: /\b(website|site|web\s*page)\b[^.]*\b(outdated|old|broken|doesn'?t work|not working|down|slow|confusing|hard to use)\b/i,
+    // Only "website"/"web page" ("on site" is a job site), and only words that
+    // describe the site itself ("old"/"down" match too much ordinary praise).
+    re: /\b(website|web\s*site|web\s*page)\b[^.]{0,60}\b(outdated|out of date|broken|doesn'?t work|not working|confusing|hard to use|hard to navigate)\b/i,
   },
 ];
 
